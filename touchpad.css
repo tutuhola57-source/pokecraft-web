@@ -1,0 +1,409 @@
+/* ==========================================================================
+   PokéCRAFT - Modern Touch Gamepad (GBA / Nintendo DS Ergonomic Edition)
+   ========================================================================== */
+
+#pad {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10000;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: ui-monospace, SFMono-Regular, "Segoe UI Mono", Menlo, Consolas, monospace;
+}
+
+/* Visibility: Hidden on large desktop screens with mouse/fine pointer, visible on touch/mobile */
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  #pad:not(.pad-force-visible) {
+    display: none !important;
+  }
+}
+
+/* Enable pointer events on interactive pad elements only */
+#pad button,
+#pad .pad-toggle-btn {
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   D-PAD (Directional Pad - Bottom Left)
+   -------------------------------------------------------------------------- */
+.pad-dpad-wrap {
+  position: absolute;
+  left: clamp(12px, 3vw, 36px);
+  bottom: clamp(14px, 4vw, 42px);
+  width: 156px;
+  height: 156px;
+  pointer-events: none;
+}
+
+.pad-dpad {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.25) 70%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dpad-cross {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.dpad-center-hub {
+  position: absolute;
+  top: 46px;
+  left: 46px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dpad-btn {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(145deg, #283548, #182232);
+  color: #94a3b8;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: transform 0.06s ease, background 0.08s ease, color 0.08s ease;
+  z-index: 2;
+}
+
+.dpad-btn:active,
+.dpad-btn.pad-active {
+  background: linear-gradient(145deg, #38bdf8, #0284c7) !important;
+  color: #ffffff !important;
+  transform: scale(0.92);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  border-color: #7dd3fc !important;
+}
+
+.dpad-up {
+  top: 0;
+  left: 46px;
+  border-radius: 10px 10px 2px 2px;
+  border-bottom: none;
+}
+
+.dpad-down {
+  bottom: 0;
+  left: 46px;
+  border-radius: 2px 2px 10px 10px;
+  border-top: none;
+}
+
+.dpad-left {
+  top: 46px;
+  left: 0;
+  border-radius: 10px 2px 2px 10px;
+  border-right: none;
+}
+
+.dpad-right {
+  top: 46px;
+  right: 0;
+  border-radius: 2px 10px 10px 2px;
+  border-left: none;
+}
+
+/* --------------------------------------------------------------------------
+   ACTION BUTTONS CLUSTER (Bottom Right)
+   -------------------------------------------------------------------------- */
+.pad-actions-wrap {
+  position: absolute;
+  right: clamp(12px, 3vw, 36px);
+  bottom: clamp(14px, 4vw, 42px);
+  width: 220px;
+  height: 180px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Secondary Actions Bar: INV, SPRINT (RUN), JUMP */
+.pad-subactions-row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-right: 4px;
+}
+
+.pad-sub-btn {
+  width: 52px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transition: transform 0.06s ease, filter 0.08s ease;
+}
+
+.pad-sub-btn .btn-text {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.pad-sub-btn .btn-key-hint {
+  font-size: 8px;
+  opacity: 0.65;
+  margin-top: 1px;
+}
+
+.btn-jump {
+  border-color: rgba(52, 211, 153, 0.45);
+}
+.btn-jump .btn-text { color: #34d399; }
+.btn-jump:active, .btn-jump.pad-active {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  transform: scale(0.92);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.7) !important;
+}
+.btn-jump:active .btn-text, .btn-jump.pad-active .btn-text { color: #ffffff; }
+
+.btn-sprint {
+  border-color: rgba(56, 189, 248, 0.45);
+}
+.btn-sprint .btn-text { color: #38bdf8; }
+.btn-sprint:active, .btn-sprint.pad-active {
+  background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+  color: #ffffff !important;
+  transform: scale(0.92);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7) !important;
+}
+.btn-sprint:active .btn-text, .btn-sprint.pad-active .btn-text { color: #ffffff; }
+
+.btn-inv {
+  border-color: rgba(192, 132, 252, 0.45);
+}
+.btn-inv .btn-text { color: #c084fc; }
+.btn-inv:active, .btn-inv.pad-active {
+  background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
+  color: #ffffff !important;
+  transform: scale(0.92);
+  box-shadow: 0 0 12px rgba(192, 132, 252, 0.7) !important;
+}
+.btn-inv:active .btn-text, .btn-inv.pad-active .btn-text { color: #ffffff; }
+
+/* Primary GBA Action Buttons: B & A */
+.pad-main-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.pad-action-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5), inset 0 2px 2px rgba(255, 255, 255, 0.35);
+  transition: transform 0.06s ease, filter 0.08s ease;
+}
+
+.pad-action-circle .btn-main-letter {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pad-action-circle .btn-action-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+/* Button B (Place / Use / Eat) - GBA Classic Amber/Carmine layout */
+.btn-action-b {
+  background: linear-gradient(145deg, rgba(234, 88, 12, 0.82), rgba(194, 65, 12, 0.82));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(251, 146, 60, 0.6);
+  color: #ffedd5;
+  transform: translateY(8px);
+}
+
+.btn-action-b:active,
+.btn-action-b.pad-active {
+  background: linear-gradient(145deg, #f97316, #ea580c) !important;
+  color: #ffffff !important;
+  transform: translateY(8px) scale(0.92);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.8), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Button A (Attack / Mine / Talk) - GBA Classic Ruby Red */
+.btn-action-a {
+  background: linear-gradient(145deg, rgba(225, 29, 72, 0.84), rgba(190, 18, 60, 0.84));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(251, 113, 133, 0.65);
+  color: #ffe4e6;
+  transform: translateY(-8px);
+}
+
+.btn-action-a:active,
+.btn-action-a.pad-active {
+  background: linear-gradient(145deg, #f43f5e, #e11d48) !important;
+  color: #ffffff !important;
+  transform: translateY(-8px) scale(0.92);
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.85), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* --------------------------------------------------------------------------
+   MENU CONTROLS (Center / Bottom Center: MAP & START)
+   -------------------------------------------------------------------------- */
+.pad-menu-bar {
+  position: absolute;
+  bottom: clamp(12px, 3.5vw, 32px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.pad-menu-pill {
+  width: 66px;
+  height: 28px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition: transform 0.06s ease, background 0.08s ease;
+  transform: rotate(-16deg);
+}
+
+.pad-menu-pill:active,
+.pad-menu-pill.pad-active {
+  background: #334155 !important;
+  color: #f8fafc !important;
+  transform: rotate(-16deg) scale(0.92);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* --------------------------------------------------------------------------
+   OPTIONAL TOUCHPAD TOGGLE BUTTON (For manual visibility on any device)
+   -------------------------------------------------------------------------- */
+.pad-toggle-btn {
+  position: fixed;
+  top: 4px;
+  right: 8px;
+  z-index: 10001;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  display: none;
+}
+@media (max-width: 1024px) {
+  .pad-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE ADJUSTMENTS FOR SMALL SCREENS & PORTRAIT
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .pad-dpad-wrap {
+    transform: scale(0.88);
+    transform-origin: bottom left;
+  }
+  .pad-actions-wrap {
+    transform: scale(0.88);
+    transform-origin: bottom right;
+  }
+  .pad-menu-bar {
+    transform: translateX(-50%) scale(0.88);
+  }
+}
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .pad-dpad-wrap {
+    bottom: 6px;
+    left: 8px;
+    transform: scale(0.82);
+    transform-origin: bottom left;
+  }
+  .pad-actions-wrap {
+    bottom: 6px;
+    right: 8px;
+    transform: scale(0.82);
+    transform-origin: bottom right;
+  }
+  .pad-menu-bar {
+    bottom: 4px;
+    transform: translateX(-50%) scale(0.78);
+  }
+}
+
+/* Hide desktop helper hints on mobile touch screens to preserve clean view */
+@media (max-width: 768px), (pointer: coarse) {
+  #hint, #legal {
+    display: none !important;
+  }
+}
