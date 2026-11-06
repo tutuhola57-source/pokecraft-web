@@ -103,10 +103,22 @@ const GEN_DIG = {
 };
 // ---------------------------------------------------------------- breaking
 function crackStage(P) { return P.mining ? Math.min(9, Math.floor(P.mining.progress * 10)) : -1; }
+let scratchCanvas = null, scratchCtx = null;
+function getScratchCtx() {
+  if (!scratchCanvas && typeof document !== 'undefined') {
+    scratchCanvas = document.createElement('canvas');
+    scratchCanvas.width = 16;
+    scratchCanvas.height = 16;
+    scratchCtx = scratchCanvas.getContext('2d', { willReadFrequently: true });
+  }
+  if (scratchCtx) scratchCtx.clearRect(0, 0, 16, 16);
+  return scratchCtx;
+}
+
 function colorsOf(tg) {
   // sample the target's pixels for break particles
-  const c = document.createElement('canvas'); c.width = 16; c.height = 16;
-  const x = c.getContext('2d');
+  const x = getScratchCtx();
+  if (!x) return ['#888'];
   const W = G.world;
   if (tg.kind === 'block' || tg.kind === 'boat') {
     const it = item(tg.block ? tg.block.id : 'oak_planks');

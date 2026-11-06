@@ -250,14 +250,13 @@ export class Input {
       for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, (e) => { if (e.pointerType === 'touch' && !e.isPrimary) this.release('tap2'); });
       canvas.addEventListener('wheel', (e) => { e.preventDefault(); this.mouse.wheel += Math.sign(e.deltaY); }, { passive: false });
     }
-    for (const b of document.querySelectorAll('#pad button')) {
+    for (const b of document.querySelectorAll('#pad button:not(.dpad-btn)')) {
       const k = b.dataset.k;
       const on = (e) => { e.preventDefault(); this.press(k); };
       const off = (e) => { e.preventDefault(); this.release(k); };
       b.addEventListener('pointerdown', on);
       b.addEventListener('pointerup', off);
       b.addEventListener('pointercancel', off);
-      b.addEventListener('pointerleave', off);
     }
   }
   press(k) {

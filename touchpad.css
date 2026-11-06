@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PokéCRAFT - Modern Touch Gamepad (GBA / Nintendo DS Ergonomic Edition)
+   PokéCRAFT - Modern Touch Gamepad (Clean-Room Diamond 4-Button Edition)
    ========================================================================== */
 
 #pad {
@@ -14,9 +14,11 @@
   user-select: none;
   -webkit-user-select: none;
   font-family: ui-monospace, SFMono-Regular, "Segoe UI Mono", Menlo, Consolas, monospace;
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
 }
 
-/* Visibility: Hidden on large desktop screens with mouse/fine pointer, visible on touch/mobile */
+/* Visibility: Hidden on desktop screens with mouse/fine pointer, visible on touch/mobile */
 @media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
   #pad:not(.pad-force-visible) {
     display: none !important;
@@ -41,8 +43,8 @@
    -------------------------------------------------------------------------- */
 .pad-dpad-wrap {
   position: absolute;
-  left: clamp(12px, 3vw, 36px);
-  bottom: clamp(14px, 4vw, 42px);
+  left: max(12px, env(safe-area-inset-left, 12px));
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
   width: 156px;
   height: 156px;
   pointer-events: none;
@@ -57,12 +59,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
+  touch-action: none;
 }
 
 .dpad-cross {
   position: relative;
   width: 140px;
   height: 140px;
+  pointer-events: none;
 }
 
 .dpad-center-hub {
@@ -93,6 +98,7 @@
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
   cursor: pointer;
+  pointer-events: none;
   transition: transform 0.06s ease, background 0.08s ease, color 0.08s ease;
   z-index: 2;
 }
@@ -135,199 +141,200 @@
 }
 
 /* --------------------------------------------------------------------------
-   ACTION BUTTONS CLUSTER (Bottom Right)
+   GATILLO RÁPIDO SPRINT / RUN (Hombro Derecho Flotante)
    -------------------------------------------------------------------------- */
-.pad-actions-wrap {
+.pad-trigger-wrap {
   position: absolute;
-  right: clamp(12px, 3vw, 36px);
-  bottom: clamp(14px, 4vw, 42px);
-  width: 220px;
-  height: 180px;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 12px;
+  right: max(16px, env(safe-area-inset-right, 16px));
+  bottom: max(212px, calc(env(safe-area-inset-bottom, 0px) + 212px));
+  pointer-events: auto;
+  z-index: 10;
 }
 
-/* Secondary Actions Bar: INV, SPRINT (RUN), JUMP */
-.pad-subactions-row {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-right: 4px;
-}
-
-.pad-sub-btn {
-  width: 52px;
-  height: 42px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.72);
+.pad-trigger-btn {
+  width: 78px;
+  height: 38px;
+  border-radius: 19px;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1.5px solid rgba(56, 189, 248, 0.55);
+  color: #38bdf8;
+  font-weight: 800;
+  font-size: 11px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
-  color: #f1f5f9;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.25);
-  transition: transform 0.06s ease, filter 0.08s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition: transform 0.05s ease, background 0.08s ease, color 0.08s ease, box-shadow 0.08s ease;
 }
 
-.pad-sub-btn .btn-text {
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.pad-sub-btn .btn-key-hint {
-  font-size: 8px;
-  opacity: 0.65;
-  margin-top: 1px;
-}
-
-.btn-jump {
-  border-color: rgba(52, 211, 153, 0.45);
-}
-.btn-jump .btn-text { color: #34d399; }
-.btn-jump:active, .btn-jump.pad-active {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  color: #ffffff !important;
-  transform: scale(0.92);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.7) !important;
-}
-.btn-jump:active .btn-text, .btn-jump.pad-active .btn-text { color: #ffffff; }
-
-.btn-sprint {
-  border-color: rgba(56, 189, 248, 0.45);
-}
-.btn-sprint .btn-text { color: #38bdf8; }
-.btn-sprint:active, .btn-sprint.pad-active {
+.pad-trigger-btn:active,
+.pad-trigger-btn.pad-active {
   background: linear-gradient(135deg, #0284c7, #0369a1) !important;
   color: #ffffff !important;
-  transform: scale(0.92);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7) !important;
-}
-.btn-sprint:active .btn-text, .btn-sprint.pad-active .btn-text { color: #ffffff; }
-
-.btn-inv {
-  border-color: rgba(192, 132, 252, 0.45);
-}
-.btn-inv .btn-text { color: #c084fc; }
-.btn-inv:active, .btn-inv.pad-active {
-  background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
-  color: #ffffff !important;
-  transform: scale(0.92);
-  box-shadow: 0 0 12px rgba(192, 132, 252, 0.7) !important;
-}
-.btn-inv:active .btn-text, .btn-inv.pad-active .btn-text { color: #ffffff; }
-
-/* Primary GBA Action Buttons: B & A */
-.pad-main-actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: flex-end;
+  border-color: #38bdf8 !important;
+  transform: scale(0.93);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.75) !important;
 }
 
-.pad-action-circle {
-  width: 64px;
-  height: 64px;
+.trigger-label {
+  letter-spacing: 0.06em;
+}
+
+/* --------------------------------------------------------------------------
+   DIAMOND 4-BUTTON CLUSTER (A, B, X, Y - Bottom Right)
+   -------------------------------------------------------------------------- */
+.pad-diamond-wrap {
+  position: absolute;
+  right: max(16px, env(safe-area-inset-right, 16px));
+  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  width: 180px;
+  height: 180px;
+  pointer-events: none;
+}
+
+.diamond-grid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.diamond-btn {
+  position: absolute;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5), inset 0 2px 2px rgba(255, 255, 255, 0.35);
-  transition: transform 0.06s ease, filter 0.08s ease;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  border: 2px solid transparent;
+  transition: transform 0.05s ease, filter 0.08s ease, box-shadow 0.08s ease;
 }
 
-.pad-action-circle .btn-main-letter {
-  font-size: 20px;
+.diamond-letter {
+  font-size: 19px;
   font-weight: 900;
   line-height: 1;
 }
 
-.pad-action-circle .btn-action-label {
-  font-size: 8.5px;
+.diamond-sub {
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
-  opacity: 0.85;
+  letter-spacing: 0.04em;
+  opacity: 0.88;
+  margin-top: 1px;
 }
 
-/* Button B (Place / Use / Eat) - GBA Classic Amber/Carmine layout */
-.btn-action-b {
-  background: linear-gradient(145deg, rgba(234, 88, 12, 0.82), rgba(194, 65, 12, 0.82));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 2px solid rgba(251, 146, 60, 0.6);
-  color: #ffedd5;
-  transform: translateY(8px);
+/* Botón X (Arriba) - Verde Esmeralda (JUMP) */
+.btn-action-x {
+  top: 0px;
+  left: 62px;
+  background: linear-gradient(145deg, #10b981, #059669);
+  border-color: #34d399;
+  color: #ecfdf5;
 }
-
-.btn-action-b:active,
-.btn-action-b.pad-active {
-  background: linear-gradient(145deg, #f97316, #ea580c) !important;
+.btn-action-x:active,
+.btn-action-x.pad-active {
+  background: linear-gradient(145deg, #059669, #047857) !important;
+  transform: scale(0.91);
+  filter: brightness(1.25);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.85) !important;
   color: #ffffff !important;
-  transform: translateY(8px) scale(0.92);
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.8), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Button A (Attack / Mine / Talk) - GBA Classic Ruby Red */
+/* Botón Y (Izquierda) - Púrpura Amatista (INV) */
+.btn-action-y {
+  top: 62px;
+  left: 0px;
+  background: linear-gradient(145deg, #9333ea, #7e22ce);
+  border-color: #c084fc;
+  color: #faf5ff;
+}
+.btn-action-y:active,
+.btn-action-y.pad-active {
+  background: linear-gradient(145deg, #7e22ce, #6b21a8) !important;
+  transform: scale(0.91);
+  filter: brightness(1.25);
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.85) !important;
+  color: #ffffff !important;
+}
+
+/* Botón A (Derecha) - Rojo Rubí (ATK / MINE) */
 .btn-action-a {
-  background: linear-gradient(145deg, rgba(225, 29, 72, 0.84), rgba(190, 18, 60, 0.84));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 2px solid rgba(251, 113, 133, 0.65);
-  color: #ffe4e6;
-  transform: translateY(-8px);
+  top: 62px;
+  right: 0px;
+  background: linear-gradient(145deg, #e11d48, #be123c);
+  border-color: #fb7185;
+  color: #fff1f2;
 }
-
 .btn-action-a:active,
 .btn-action-a.pad-active {
-  background: linear-gradient(145deg, #f43f5e, #e11d48) !important;
+  background: linear-gradient(145deg, #be123c, #9f1239) !important;
+  transform: scale(0.91);
+  filter: brightness(1.25);
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.9) !important;
   color: #ffffff !important;
-  transform: translateY(-8px) scale(0.92);
-  box-shadow: 0 0 16px rgba(244, 63, 94, 0.85), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Botón B (Abajo) - Ámbar / Naranja Cálido (USE / PLACE) */
+.btn-action-b {
+  bottom: 0px;
+  left: 62px;
+  background: linear-gradient(145deg, #ea580c, #c2410c);
+  border-color: #fb923c;
+  color: #fff7ed;
+}
+.btn-action-b:active,
+.btn-action-b.pad-active {
+  background: linear-gradient(145deg, #c2410c, #9a3412) !important;
+  transform: scale(0.91);
+  filter: brightness(1.25);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.85) !important;
+  color: #ffffff !important;
 }
 
 /* --------------------------------------------------------------------------
-   MENU CONTROLS (Center / Bottom Center: MAP & START)
+   BARRA DE MENÚ CENTRAL (MAP, SELECT, START)
    -------------------------------------------------------------------------- */
 .pad-menu-bar {
   position: absolute;
-  bottom: clamp(12px, 3.5vw, 32px);
+  bottom: max(12px, env(safe-area-inset-bottom, 12px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   pointer-events: none;
 }
 
 .pad-menu-pill {
-  width: 66px;
+  width: 62px;
   height: 28px;
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
   color: #cbd5e1;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  pointer-events: auto;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-  transition: transform 0.06s ease, background 0.08s ease;
+  transition: transform 0.06s ease, background 0.08s ease, color 0.08s ease;
   transform: rotate(-16deg);
 }
 
@@ -336,7 +343,7 @@
   background: #334155 !important;
   color: #f8fafc !important;
   transform: rotate(-16deg) scale(0.92);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -366,44 +373,80 @@
 }
 
 /* --------------------------------------------------------------------------
-   RESPONSIVE ADJUSTMENTS FOR SMALL SCREENS & PORTRAIT
+   RESPONSIVE ADJUSTMENTS FOR SMALL SCREENS & PORTRAIT / LANDSCAPE
    -------------------------------------------------------------------------- */
 @media (max-width: 640px) {
   .pad-dpad-wrap {
-    transform: scale(0.88);
+    transform: scale(0.85);
     transform-origin: bottom left;
   }
-  .pad-actions-wrap {
-    transform: scale(0.88);
+  .pad-diamond-wrap {
+    transform: scale(0.85);
+    transform-origin: bottom right;
+  }
+  .pad-trigger-wrap {
+    bottom: max(185px, calc(env(safe-area-inset-bottom, 0px) + 185px));
+    transform: scale(0.85);
     transform-origin: bottom right;
   }
   .pad-menu-bar {
-    transform: translateX(-50%) scale(0.88);
+    transform: translateX(-50%) scale(0.82);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pad-dpad-wrap {
+    transform: scale(0.78);
+    transform-origin: bottom left;
+    left: max(6px, env(safe-area-inset-left, 6px));
+  }
+  .pad-diamond-wrap {
+    transform: scale(0.78);
+    transform-origin: bottom right;
+    right: max(6px, env(safe-area-inset-right, 6px));
+  }
+  .pad-trigger-wrap {
+    bottom: max(165px, calc(env(safe-area-inset-bottom, 0px) + 165px));
+    transform: scale(0.78);
+    transform-origin: bottom right;
+    right: max(6px, env(safe-area-inset-right, 6px));
+  }
+  .pad-menu-bar {
+    transform: translateX(-50%) scale(0.72);
+    bottom: max(6px, env(safe-area-inset-bottom, 6px));
+    gap: 6px;
   }
 }
 
 @media (max-height: 480px) and (orientation: landscape) {
   .pad-dpad-wrap {
-    bottom: 6px;
-    left: 8px;
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    left: max(14px, env(safe-area-inset-left, 14px));
     transform: scale(0.82);
     transform-origin: bottom left;
   }
-  .pad-actions-wrap {
-    bottom: 6px;
-    right: 8px;
+  .pad-diamond-wrap {
+    bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    right: max(14px, env(safe-area-inset-right, 14px));
+    transform: scale(0.82);
+    transform-origin: bottom right;
+  }
+  .pad-trigger-wrap {
+    bottom: max(168px, calc(env(safe-area-inset-bottom, 0px) + 168px));
+    right: max(14px, env(safe-area-inset-right, 14px));
     transform: scale(0.82);
     transform-origin: bottom right;
   }
   .pad-menu-bar {
-    bottom: 4px;
+    bottom: max(8px, env(safe-area-inset-bottom, 8px));
     transform: translateX(-50%) scale(0.78);
   }
 }
 
-/* Hide desktop helper hints on mobile touch screens to preserve clean view */
-@media (max-width: 768px), (pointer: coarse) {
-  #hint, #legal {
+/* Hide desktop helper hints on mobile touch screens or short screens to preserve clean view */
+@media (max-width: 768px), (pointer: coarse), (max-height: 520px) {
+  #hint, #legal, #signup {
     display: none !important;
   }
 }

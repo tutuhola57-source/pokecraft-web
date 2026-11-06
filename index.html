@@ -38,6 +38,19 @@
   #signup-msg:empty { display: none; }
   #signup-msg { display: block; margin-top: 4px; color: #b5b5b5; }   /* the touch pad covers it; the title screen carries the notice */
 </style>
+  <script>
+    window.__pokeErrors = [];
+    window.addEventListener('error', function(e) {
+      var err = { msg: e.message, file: e.filename, line: e.lineno, col: e.colno };
+      window.__pokeErrors.push(err);
+      try { navigator.sendBeacon('/__log_error', JSON.stringify(err)); } catch(x){}
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      var err = { msg: 'Unhandled Promise Rejection: ' + (e.reason ? (e.reason.message || e.reason) : 'unknown') };
+      window.__pokeErrors.push(err);
+      try { navigator.sendBeacon('/__log_error', JSON.stringify(err)); } catch(x){}
+    });
+  </script>
 </head>
 <body>
   <!-- PokéCRAFT PC Menu Bar -->
@@ -174,7 +187,7 @@
   <div id="pad" aria-label="Touch Gamepad">
     <!-- Directional Pad (D-Pad: up, down, left, right) -->
     <div class="pad-dpad-wrap">
-      <div class="pad-dpad">
+      <div class="pad-dpad" id="pad-dpad-surface">
         <div class="dpad-cross">
           <button type="button" class="pad-btn dpad-btn dpad-up" data-k="up" aria-label="Up">▲</button>
           <button type="button" class="pad-btn dpad-btn dpad-down" data-k="down" aria-label="Down">▼</button>
@@ -185,43 +198,51 @@
       </div>
     </div>
 
-    <!-- Center Menu Pill Buttons (MAP and START) -->
+    <!-- Gatillo Rápido SPRINT / RUN (Hombro Derecho / Flotante) -->
+    <div class="pad-trigger-wrap">
+      <button type="button" class="pad-btn pad-trigger-btn btn-trigger-run" data-k="sprint" aria-label="Run / Sprint">
+        <span class="trigger-label">⚡ RUN</span>
+      </button>
+    </div>
+
+    <!-- Center Menu Pill Buttons (MAP, SELECT, START) -->
     <div class="pad-menu-bar">
       <button type="button" class="pad-btn pad-menu-pill" data-k="map" aria-label="Town Map">
         <span>MAP</span>
+      </button>
+      <button type="button" class="pad-btn pad-menu-pill" data-k="select" aria-label="Select">
+        <span>SELECT</span>
       </button>
       <button type="button" class="pad-btn pad-menu-pill" data-k="start" aria-label="Game Menu">
         <span>START</span>
       </button>
     </div>
 
-    <!-- Action Buttons Cluster (INV, SPRINT, JUMP, B, A) -->
-    <div class="pad-actions-wrap">
-      <!-- Sub-Actions Row (inv, sprint, jump) -->
-      <div class="pad-subactions-row">
-        <button type="button" class="pad-btn pad-sub-btn btn-inv" data-k="inv" aria-label="Inventory (E)">
-          <span class="btn-text">INV</span>
-          <span class="btn-key-hint">[E]</span>
+    <!-- Diamond Layout Clásico de 4 Botones Frontales (Inferior Derecho) -->
+    <div class="pad-diamond-wrap">
+      <div class="diamond-grid">
+        <!-- Botón X (Arriba) - JUMP -->
+        <button type="button" class="pad-btn diamond-btn btn-action-x" data-k="jump" aria-label="Button X - Jump">
+          <span class="diamond-letter">X</span>
+          <span class="diamond-sub">JUMP</span>
         </button>
-        <button type="button" class="pad-btn pad-sub-btn btn-sprint" data-k="sprint" aria-label="Sprint (Shift)">
-          <span class="btn-text">RUN</span>
-          <span class="btn-key-hint">[Shift]</span>
-        </button>
-        <button type="button" class="pad-btn pad-sub-btn btn-jump" data-k="jump" aria-label="Jump (Space)">
-          <span class="btn-text">JUMP</span>
-          <span class="btn-key-hint">[Space]</span>
-        </button>
-      </div>
 
-      <!-- Main Action Buttons (b, a) -->
-      <div class="pad-main-actions">
-        <button type="button" class="pad-btn pad-action-circle btn-action-b" data-k="b" aria-label="Button B - Place / Use / Eat">
-          <span class="btn-main-letter">B</span>
-          <span class="btn-action-label">USE</span>
+        <!-- Botón Y (Izquierda) - INV -->
+        <button type="button" class="pad-btn diamond-btn btn-action-y" data-k="inv" aria-label="Button Y - Inventory">
+          <span class="diamond-letter">Y</span>
+          <span class="diamond-sub">INV</span>
         </button>
-        <button type="button" class="pad-btn pad-action-circle btn-action-a" data-k="a" aria-label="Button A - Attack / Mine / Talk">
-          <span class="btn-main-letter">A</span>
-          <span class="btn-action-label">ATK</span>
+
+        <!-- Botón A (Derecha) - ATK / MINE -->
+        <button type="button" class="pad-btn diamond-btn btn-action-a" data-k="a" aria-label="Button A - Attack / Mine">
+          <span class="diamond-letter">A</span>
+          <span class="diamond-sub">ATK</span>
+        </button>
+
+        <!-- Botón B (Abajo) - USE / PLACE -->
+        <button type="button" class="pad-btn diamond-btn btn-action-b" data-k="b" aria-label="Button B - Place / Use">
+          <span class="diamond-letter">B</span>
+          <span class="diamond-sub">USE</span>
         </button>
       </div>
     </div>
@@ -233,9 +254,8 @@
   </button>
 
   <script>
-    // Smooth multi-touch sliding support for D-Pad & WebAudio unlock
-    (function() {
-      const dpadWrap = document.querySelector('.pad-dpad');
+    // Motor desacoplado de PointerEvent con soporte multi-touch concurrente
+    (function initTouchPad() {
       const padEl = document.getElementById('pad');
       const toggleBtn = document.getElementById('pad-toggle-btn');
       
@@ -247,46 +267,109 @@
         });
       }
 
-      // Unlock WebAudio on any touch
-      window.addEventListener('touchstart', () => {
+      // Desbloqueo de WebAudio en cualquier contacto táctil o puntero
+      const unlock = () => {
         try { if (window.__unlockAudio) window.__unlockAudio(); } catch(e){}
-      }, { passive: true, capture: true });
-
-      if (!dpadWrap) return;
-      let activeDir = null;
-
-      const getDirFromPoint = (x, y) => {
-        const el = document.elementFromPoint(x, y);
-        const btn = el ? el.closest('#pad .dpad-btn') : null;
-        return btn ? btn.dataset.k : null;
       };
+      window.addEventListener('touchstart', unlock, { passive: true, capture: true });
+      window.addEventListener('pointerdown', unlock, { passive: true, capture: true });
 
-      const handleTouch = (e) => {
-        const t = e.touches ? e.touches[0] : e;
-        if (!t) return;
-        const dir = getDirFromPoint(t.clientX, t.clientY);
-        if (dir !== activeDir) {
-          if (activeDir && window.__pokeInput) window.__pokeInput.release(activeDir);
+      const dpad = document.getElementById('pad-dpad-surface');
+      if (!dpad) return;
+
+      let dpadPointerId = null;
+      let activeDpadDir = null;
+
+      // Seguimiento independiente del D-Pad mediante vector y radio
+      const updateDpadFromCoords = (clientX, clientY) => {
+        const rect = dpad.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        const dist = Math.hypot(dx, dy);
+
+        // Zona muerta central de 14px
+        if (dist < 14) {
+          if (activeDpadDir && window.__pokeInput) window.__pokeInput.release(activeDpadDir);
+          activeDpadDir = null;
+          document.querySelectorAll('.dpad-btn').forEach(b => b.classList.remove('pad-active'));
+          return;
+        }
+
+        // Cálculo angular para 4 direcciones exactas
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI); // -180 a 180
+        let dir = null;
+        if (angle >= -45 && angle < 45) dir = 'right';
+        else if (angle >= 45 && angle < 135) dir = 'down';
+        else if (angle >= -135 && angle < -45) dir = 'up';
+        else dir = 'left';
+
+        if (dir !== activeDpadDir) {
+          if (activeDpadDir && window.__pokeInput) window.__pokeInput.release(activeDpadDir);
           if (dir && window.__pokeInput) window.__pokeInput.press(dir);
-          activeDir = dir;
+          activeDpadDir = dir;
           document.querySelectorAll('.dpad-btn').forEach(b => {
-            b.classList.toggle('pad-active', b.dataset.k === activeDir);
+            b.classList.toggle('pad-active', b.dataset.k === activeDpadDir);
           });
         }
       };
 
-      const endTouch = () => {
-        if (activeDir && window.__pokeInput) {
-          window.__pokeInput.release(activeDir);
-          activeDir = null;
-          document.querySelectorAll('.dpad-btn').forEach(b => b.classList.remove('pad-active'));
+      dpad.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dpadPointerId = e.pointerId;
+        try { dpad.setPointerCapture(e.pointerId); } catch(err){}
+        updateDpadFromCoords(e.clientX, e.clientY);
+      });
+
+      dpad.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== dpadPointerId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        updateDpadFromCoords(e.clientX, e.clientY);
+      });
+
+      const releaseDpad = (e) => {
+        if (e.pointerId !== dpadPointerId) return;
+        if (activeDpadDir && window.__pokeInput) {
+          window.__pokeInput.release(activeDpadDir);
+          activeDpadDir = null;
         }
+        dpadPointerId = null;
+        document.querySelectorAll('.dpad-btn').forEach(b => b.classList.remove('pad-active'));
       };
 
-      dpadWrap.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
-      dpadWrap.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
-      dpadWrap.addEventListener('touchend', endTouch, { passive: true });
-      dpadWrap.addEventListener('touchcancel', endTouch, { passive: true });
+      dpad.addEventListener('pointerup', releaseDpad);
+      dpad.addEventListener('pointercancel', releaseDpad);
+
+      // Manejador independiente de botones de acción con soporte multi-touch simultáneo
+      const activePointers = new Map(); // pointerId -> actionKey
+
+      document.querySelectorAll('#pad button:not(.dpad-btn)').forEach(btn => {
+        const k = btn.dataset.k;
+        if (!k) return;
+
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try { btn.setPointerCapture(e.pointerId); } catch(err){}
+          activePointers.set(e.pointerId, k);
+          btn.classList.add('pad-active');
+          if (window.__pokeInput) window.__pokeInput.press(k);
+        });
+
+        const endAction = (e) => {
+          if (!activePointers.has(e.pointerId)) return;
+          const key = activePointers.get(e.pointerId);
+          activePointers.delete(e.pointerId);
+          btn.classList.remove('pad-active');
+          if (window.__pokeInput) window.__pokeInput.release(key);
+        };
+
+        btn.addEventListener('pointerup', endAction);
+        btn.addEventListener('pointercancel', endAction);
+      });
     })();
   </script>
 

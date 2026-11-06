@@ -563,8 +563,7 @@ export class World {
       if (this.decoAt(i) === DECO_CACTUS) this.redraw(x, y - 1);
       if (this.isOutdoor(x, y)) this.outdoorVer = (this.outdoorVer || 0) + 1;
       this.refreshLight(i);
-      this.redraw(x, y);
-      for (const [dx, dy] of [[1, 0], [-1, 0]]) this.redraw(x + dx, y + dy);
+      this.redrawArea(x, y);
     }
     if (this.dirty) this.dirty.add(i);
     if (this.capture) this.capture(i);
@@ -817,7 +816,7 @@ export class World {
     this.col[i] = e[3];
     this.beh[i] = e[2];
     this.edits.set(i, t);
-    this.redraw(x, y);
+    this.redrawArea(x, y);
     if (this.inLitRegion(x, y)) for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) this.refreshTileLight(x + dx, y + dy);
     if (this.onChange) this.onChange(x, y);
     if (this.dirty) this.dirty.add(i);
@@ -848,9 +847,7 @@ export class World {
     }
     if (this.isOutdoor(x, y)) this.outdoorVer = (this.outdoorVer || 0) + 1;   // eyes of ender relabel Kanto after this
     this.refreshLight(i);
-    this.redraw(x, y);
-    // fences and beds look at their neighbours
-    for (const [dx, dy] of [[1, 0], [-1, 0]]) this.redraw(x + dx, y + dy);
+    this.redrawArea(x, y);
     if (this.onChange) this.onChange(x, y);   // (the minimap marks the cell's block: src/minimap.js, never throws)
     if (this.dirty && this.inside(x, y)) this.dirty.add(i);
     if (this.capture && this.inside(x, y)) this.capture(i);
@@ -1208,6 +1205,14 @@ export class World {
     const c = this.chunks.get(key);
     if (c) this.drawCell(c, x, y);
   }
+  redrawArea(x, y) {
+    if (!this.inside(x, y)) return;
+    this.redraw(x, y - 1);
+    this.redraw(x, y);
+    this.redraw(x, y + 1);
+    this.redraw(x - 1, y);
+    this.redraw(x + 1, y);
+  }
   drawCell(c, x, y) {
     if (!this.inside(x, y)) return;
     const px = (x - c.cx * CH) * TILE, py = (y - c.cy * CH) * TILE;
@@ -1224,7 +1229,13 @@ export class World {
     const b = this.blocks.get(i) || (this.deco && this.decoAt(i) === DECO_FARM ? FARMLAND_LOOK : null);   // (7a: a village farm's farmland)
     if (b && b.flush) {
       const look = blockLook(b.flushLook || (b.id + ':flush'));
-      if (look != null) drawLook(c.bctx, look, px, py - 8);
+      if (look != null) {
+        drawLook(c.bctx, look, px, py - 8);
+        if (py === 0 && c.cy > 0) {
+          const cAbove = this.chunks.get((c.cy - 1) * this.cw + c.cx);
+          if (cAbove) drawLook(cAbove.bctx, look, px, CH * TILE - 8);
+        }
+      }
     }
     if (this.deco && (!b || this.baked(b))) this.drawDeco(c, i, px, py, b);
   }
@@ -1530,9 +1541,9 @@ function villageLoot(seed, house) {
 }
 
 function mkCanvas() { const k = document.createElement('canvas'); k.width = CH * TILE; k.height = CH * TILE; return k; }
-// How many draw-chunk canvas pairs stay cached (10.3): fewer on phones (a coarse pointer).
+// How many draw-chunk canvas pairs stay cached (10.3): 48 chunks cached to prevent thrashing.
 function chunkCap() {
-  try { return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 24 : 48; } catch (e) { return 48; }
+  try { return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 48 : 48; } catch (e) { return 48; }
 }
 
 // ---------------------------------------------------------------- placed block looks (assets/mc/blocks.png)
