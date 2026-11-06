@@ -172,9 +172,9 @@ export function startRows(gen, m) {
   if (mode(m) === 'spectator') return ['POKéDEX', 'POKéMON', 'STEVE', 'OPTION', 'TITLE'];
   return ['POKéDEX', 'POKéMON', 'BAG', 'STEVE', 'SAVE', 'CO-OP', 'OPTION', 'TITLE', 'EXIT'];
 }
-// OPTION rows: MUSIC always, WILD POKeMON in Creative, DIFFICULTY in Survival (not Hardcore, which is locked).
+// OPTION rows: LANGUAGE, KEEP INVENTORY, MUSIC always, WILD POKeMON in Creative, DIFFICULTY in Survival (not Hardcore, which is locked).
 export function optionRows(m) {
-  const md = mode(m), rows = ['MUSIC'];
+  const md = mode(m), rows = ['LANGUAGE', 'KEEP INVENTORY', 'MUSIC'];
   if (md === 'creative') rows.push('WILD POKéMON');
   if (md === 'survival') rows.push('DIFFICULTY');
   return rows;

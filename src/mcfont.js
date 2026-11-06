@@ -28,12 +28,31 @@ function shadowOf(color) {
   const r = ((n >> 16) & 255) >> 2, g = ((n >> 8) & 255) >> 2, b = (n & 255) >> 2;
   return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
 }
-const code = (ch) => { const c = ch.charCodeAt(0); return c < 128 ? c : 63; };
+
+// Clean fallback for Spanish / accented characters in Minecraft 8x8 ASCII font
+const MC_CHAR_FALLBACK = {
+  'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'Á': 'A', 'À': 'A', 'Ä': 'A',
+  'è': 'e', 'ë': 'e', 'ê': 'e', 'É': 'E', 'È': 'E', 'Ë': 'E',
+  'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i', 'Í': 'I', 'Ì': 'I', 'Ï': 'I',
+  'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'Ó': 'O', 'Ò': 'O', 'Ö': 'O',
+  'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u', 'Ú': 'U', 'Ù': 'U', 'Ü': 'U',
+  'ñ': 'n', 'Ñ': 'N',
+  '¡': '!', '¿': '?'
+};
+const cleanMcChar = (ch) => (ch === 'é' ? 'é' : (MC_CHAR_FALLBACK[ch] || ch));
+const code = (ch) => {
+  const c = cleanMcChar(ch).charCodeAt(0);
+  return c < 128 ? c : 63;
+};
+
 // é comes from Minecraft's accented sheet (taller cells, three pixels higher)
 const eac = () => A.mcFont.eacute;
 export function mcWidth(text, scale = 1) {
   let w = 0;
-  for (const ch of String(text)) w += ch === 'é' ? eac().w : (A.mcFont.widths[code(ch)] || 6);
+  for (const rawCh of String(text)) {
+    const ch = cleanMcChar(rawCh);
+    w += ch === 'é' ? eac().w : (A.mcFont.widths[code(ch)] || 6);
+  }
   return (w - 1) * scale;
 }
 export function mcText(ctx, text, x, y, color = '#ffffff', shadow = true, scale = 1) {
@@ -45,7 +64,8 @@ export function mcText(ctx, text, x, y, color = '#ffffff', shadow = true, scale 
 function draw(ctx, text, x, y, color, scale) {
   const sheet = atlas(color);
   let cx = Math.round(x);
-  for (const ch of text) {
+  for (const rawCh of text) {
+    const ch = cleanMcChar(rawCh);
     if (ch === 'é') {
       ctx.drawImage(eSheet(color), 0, 0, 9, 12, cx, Math.round(y) + eac().dy * scale, 9 * scale, 12 * scale);
       cx += eac().w * scale; continue;

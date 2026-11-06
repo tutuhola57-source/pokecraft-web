@@ -357,6 +357,9 @@
           activePointers.set(e.pointerId, k);
           btn.classList.add('pad-active');
           if (window.__pokeInput) window.__pokeInput.press(k);
+          if (window.__pokeHaptics !== false && typeof navigator !== 'undefined' && navigator.vibrate) {
+            try { navigator.vibrate(12); } catch(err){}
+          }
         });
 
         const endAction = (e) => {
@@ -371,9 +374,15 @@
         btn.addEventListener('pointercancel', endAction);
       });
     })();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && window.__pokeAutosave) {
+        try { window.__pokeAutosave(); } catch(err){}
+      }
+    });
   </script>
 
-  <div id="hint"><b>WASD/Arrows</b> move · <b>Left Click / Z</b> mine/attack · <b>Right Click / X</b> place/eat · <b>Space</b> jump · <b>Shift</b> sprint · <b>E</b> inventory · <b>Q</b> drop · <b>1–9/Wheel</b> hotbar · <b>Enter</b> menu · <b>M</b> town map · <b>F1</b> settings · <b>F2</b> remap keys</div>
+  <div id="hint"><b>WASD/Flechas</b> mover · <b>Clic Izq / Z</b> atacar/minar · <b>Clic Der / X</b> usar/comer · <b>Espacio</b> saltar · <b>Shift</b> correr · <b>E</b> inventario · <b>Q</b> soltar · <b>1–9/Rueda</b> barra · <b>Enter</b> menú · <b>M</b> mapa · <b>F1</b> ajustes · <b>F2</b> controles</div>
   <script>
     // Email sign-up for the developer's next game. Posts to /api/subscribe (a Cloudflare Pages Function that
     // stores the address in D1); remembers a successful sign-up in this browser so the line stays quiet after.
@@ -429,15 +438,50 @@
       </div>
 
       <div class="settings-tabs">
-        <button class="tab-btn active" data-tab="tab-display">🖥️ DISPLAY</button>
+        <button class="tab-btn active" data-tab="tab-gameplay">⚙️ JUEGO / GAMEPLAY</button>
+        <button class="tab-btn" data-tab="tab-display">🖥️ DISPLAY</button>
         <button class="tab-btn" data-tab="tab-audio">🔊 AUDIO</button>
         <button class="tab-btn" data-tab="tab-controls">🎮 CONTROLS</button>
         <button class="tab-btn" data-tab="tab-about">ℹ️ ABOUT GAME</button>
       </div>
 
       <div class="settings-body">
+        <!-- Gameplay Tab -->
+        <div id="tab-gameplay" class="tab-pane active">
+          <div class="opt-section">
+            <div class="opt-label" id="lbl-language-title">Game Language / Idioma del Juego</div>
+            <div class="opt-desc" id="lbl-language-desc">Select interface, dialogues, NPC conversations and game text language.</div>
+            <div class="btn-group">
+              <button type="button" id="opt-lang-es" class="opt-btn opt-lang-btn active">🇪🇸 Español (Predeterminado)</button>
+              <button type="button" id="opt-lang-en" class="opt-btn opt-lang-btn">🇬🇧 English</button>
+            </div>
+          </div>
+
+          <div class="opt-section">
+            <div class="opt-label" id="lbl-keep-inv-title">Keep Inventory on Death / Guardar Inventario al Morir</div>
+            <div class="opt-desc" id="lbl-keep-inv-desc">Prevent losing your hotbar items, armor and experience levels when Steve faints or falls into the void.</div>
+            <div style="margin-top: 8px;">
+              <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #f1f5f9;">
+                <input type="checkbox" id="check-keep-inventory" checked>
+                <span id="lbl-keep-inv-check"><b>Guardar Inventario Activo (Keep Inventory: ON)</b></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="opt-section">
+            <div class="opt-label" id="lbl-haptics-title">Haptic Touch Feedback / Vibración Háptica Táctil</div>
+            <div class="opt-desc" id="lbl-haptics-desc">Vibrate on virtual directional pad and action button taps for responsive tactile feedback on touch devices.</div>
+            <div style="margin-top: 8px;">
+              <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #f1f5f9;">
+                <input type="checkbox" id="check-touch-haptics" checked>
+                <span id="lbl-haptics-check"><b>Activar vibración táctil háptica (Haptic Vibration: ON)</b></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <!-- Display Tab -->
-        <div id="tab-display" class="tab-pane active">
+        <div id="tab-display" class="tab-pane">
           <div class="opt-section">
             <div class="opt-label">Display Mode</div>
             <div class="opt-desc">Switch between borderless fullscreen gaming and windowed desktop mode.</div>

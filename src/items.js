@@ -1,11 +1,12 @@
 // Minecraft items, recipes, smelting and the inventory, from assets/mc/items.json (tools/mcdata.py).
 import { A } from './assets.js';
+import { tItem } from './i18n.js';
 
-export const item = (id) => A.items.items[id];
+export const item = (id) => (A.items && A.items.items ? A.items.items[id] : null);
 export const maxStack = (id) => (item(id) ? item(id).stack : 64);
 export const toolOf = (s) => (s && item(s.id) && item(s.id).tool) || null;
 export const foodOf = (s) => (s && item(s.id) && item(s.id).food) || null;
-export const nameOf = (id) => (item(id) ? item(id).name : id);
+export const nameOf = (id) => tItem(id, item(id) ? item(id).name : id);
 export const stack = (id, n = 1) => ({ id, n });
 // Axe and hoe icons carry the blade on one side of the handle (which runs bottom-left to top-right).
 // In Steve's hand it would trail the swing, so the in-hand drawings mirror these icons across the

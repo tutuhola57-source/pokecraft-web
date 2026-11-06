@@ -13,6 +13,7 @@ export const G = {
   party: [], pc: [], dex: { seen: new Set(), caught: new Set() },
   spawn: null, score: 0, steps: 0, playTime: 0, money: 3000,
   heldName: null, actionBar: null,
+  keepInventory: true,
   rules: { mobs: true, encounters: true, daylight: true, hunger: true, warps: true, wild: true, nether: true },
 };
 export const MC_TICK = 1 / 20;

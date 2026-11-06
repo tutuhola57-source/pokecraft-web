@@ -256,6 +256,83 @@
     });
   }
 
+  // Gameplay Tab Elements
+  const btnLangEs = document.getElementById('opt-lang-es');
+  const btnLangEn = document.getElementById('opt-lang-en');
+  const checkKeepInv = document.getElementById('check-keep-inventory');
+  const checkTouchHaptics = document.getElementById('check-touch-haptics');
+  const hintEl = document.getElementById('hint');
+
+  const HINT_ES = '<b>WASD/Flechas</b> mover · <b>Clic Izq / Z</b> atacar/minar · <b>Clic Der / X</b> usar/comer · <b>Espacio</b> saltar · <b>Shift</b> correr · <b>E</b> inventario · <b>Q</b> soltar · <b>1–9/Rueda</b> barra · <b>Enter</b> menú · <b>M</b> mapa · <b>F1</b> ajustes · <b>F2</b> controles';
+  const HINT_EN = '<b>WASD/Arrows</b> move · <b>Left Click / Z</b> mine/attack · <b>Right Click / X</b> place/eat · <b>Space</b> jump · <b>Shift</b> sprint · <b>E</b> inventory · <b>Q</b> drop · <b>1–9/Wheel</b> hotbar · <b>Enter</b> menu · <b>M</b> town map · <b>F1</b> settings · <b>F2</b> remap keys';
+
+  function applyLanguage(lang) {
+    const l = (lang === 'en') ? 'en' : 'es';
+    try { localStorage.setItem('pokecraft-lang', l); } catch(e){}
+    window.__pokeLang = l;
+    if (window.__setLanguage) window.__setLanguage(l);
+
+    if (btnLangEs && btnLangEn) {
+      if (l === 'es') {
+        btnLangEs.classList.add('active');
+        btnLangEn.classList.remove('active');
+      } else {
+        btnLangEn.classList.add('active');
+        btnLangEs.classList.remove('active');
+      }
+    }
+
+    if (hintEl) {
+      hintEl.innerHTML = (l === 'es') ? HINT_ES : HINT_EN;
+    }
+  }
+
+  if (btnLangEs) btnLangEs.addEventListener('click', () => applyLanguage('es'));
+  if (btnLangEn) btnLangEn.addEventListener('click', () => applyLanguage('en'));
+
+  if (checkKeepInv) {
+    checkKeepInv.addEventListener('change', (e) => {
+      const on = !!e.target.checked;
+      try { localStorage.setItem('pokecraft-keep-inv', on ? 'true' : 'false'); } catch(e){}
+      window.__pokeKeepInventory = on;
+      if (window.__pokeG) window.__pokeG.keepInventory = on;
+    });
+  }
+
+  if (checkTouchHaptics) {
+    checkTouchHaptics.addEventListener('change', (e) => {
+      const on = !!e.target.checked;
+      try { localStorage.setItem('pokecraft-haptics', on ? 'true' : 'false'); } catch(e){}
+      window.__pokeHaptics = on;
+      if (on && navigator.vibrate) try { navigator.vibrate(15); } catch(err){}
+    });
+  }
+
+  // Set initial globals
+  window.__pokeHaptics = localStorage.getItem('pokecraft-haptics') !== 'false';
+  window.__pokeKeepInventory = localStorage.getItem('pokecraft-keep-inv') !== 'false';
+  window.__pokeLang = localStorage.getItem('pokecraft-lang') || 'es';
+
+  // Unified global settings API
+  window.__pokeSettings = {
+    get keepInventory() {
+      return window.__pokeKeepInventory !== false;
+    },
+    set keepInventory(val) {
+      const on = !!val;
+      window.__pokeKeepInventory = on;
+      if (window.__pokeG) window.__pokeG.keepInventory = on;
+      try { localStorage.setItem('pokecraft-keep-inv', on ? 'true' : 'false'); } catch (e) {}
+      if (checkKeepInv) checkKeepInv.checked = on;
+    },
+    get lang() {
+      return window.__pokeLang || 'es';
+    },
+    set lang(val) {
+      applyLanguage(val);
+    }
+  };
+
   // Sync settings state to UI
   function syncSettingsUI() {
     updateModeBtns();
@@ -272,6 +349,23 @@
       if (b.dataset.sprint === curSprint) b.classList.add('active');
       else b.classList.remove('active');
     });
+
+    // Sync Gameplay tab
+    const curLang = localStorage.getItem('pokecraft-lang') || 'es';
+    applyLanguage(curLang);
+
+    if (checkKeepInv) {
+      const keepOn = localStorage.getItem('pokecraft-keep-inv') !== 'false';
+      checkKeepInv.checked = keepOn;
+      window.__pokeKeepInventory = keepOn;
+      if (window.__pokeG) window.__pokeG.keepInventory = keepOn;
+    }
+
+    if (checkTouchHaptics) {
+      const hapticsOn = localStorage.getItem('pokecraft-haptics') !== 'false';
+      checkTouchHaptics.checked = hapticsOn;
+      window.__pokeHaptics = hapticsOn;
+    }
   }
 
   // Global key bindings

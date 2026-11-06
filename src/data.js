@@ -1,11 +1,17 @@
-// Species, moves, the type chart and Gen 3 formulas, all read from the decomp-derived pokemon.json.
 import { A } from './assets.js';
 import { range, randInt } from './rng.js';
+import { tMove } from './i18n.js';
 
 export const SPECIES = () => A.dex.species;
 export const MOVES = () => A.dex.moves;
 export function species(key) { return A.dex.species[key]; }
-export function move(key) { return key === 'STRUGGLE' ? STRUGGLE : A.dex.moves[key]; }
+export function move(key) {
+  const m = key === 'STRUGGLE' ? STRUGGLE : (A.dex && A.dex.moves ? A.dex.moves[key] : null);
+  if (!m) return m;
+  const transName = tMove(key, m.name);
+  if (transName !== m.name) return { ...m, name: transName };
+  return m;
+}
 const STRUGGLE = { name: 'STRUGGLE', effect: 'RECOIL', power: 50, type: 'MYSTERY', acc: 0, pp: 1, chance: 0, priority: 0, target: 'SELECTED', contact: true };
 
 // Gen 3 splits physical/special by type.

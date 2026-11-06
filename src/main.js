@@ -32,6 +32,28 @@ import { HallOfFame } from './hof.js';
 import { drawSummary, drawDexEntry } from './summary.js';
 import { MapScreen } from './mapscreen.js';
 import { NET, netHooks } from './net/flag.js';   // co-op: false in single-player; the rest of src/net/ loads on demand
+import { t, tItem, tMove, getLanguage, setLanguage, onLanguageChange } from './i18n.js';
+
+try {
+  const savedKeep = localStorage.getItem('pokecraft-keep-inv');
+  G.keepInventory = savedKeep !== 'false';
+} catch (e) {
+  G.keepInventory = true;
+}
+window.__pokeG = G;
+window.__pokeKeepInventory = G.keepInventory;
+window.__setLanguage = (l) => setLanguage(l);
+window.__getLanguage = () => getLanguage();
+window.__pokeSettings = window.__pokeSettings || {
+  get keepInventory() { return G.keepInventory !== false; },
+  set keepInventory(v) {
+    G.keepInventory = !!v;
+    window.__pokeKeepInventory = G.keepInventory;
+    try { localStorage.setItem('pokecraft-keep-inv', G.keepInventory ? 'true' : 'false'); } catch (e) {}
+  },
+  get lang() { return getLanguage(); },
+  set lang(v) { setLanguage(v); }
+};
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -537,14 +559,15 @@ let summaryMon = null, dexKey = null;
 
 function showBanner(text) { if (text && text !== banner.text) { banner.text = text; banner.t = 0; } }
 function say(text, then) {
-  const lines = wrap(text, VW - 28);
+  const trans = t(text);
+  const lines = wrap(trans, VW - 28);
   const pages = []; for (let i = 0; i < lines.length; i += 2) pages.push(lines.slice(i, i + 2));
   msg = { pages, page: 0, shown: 0, then, from: state === 'msg' ? (msg ? msg.from : 'play') : state };
   state = 'msg';
 }
 function ask(text, onYes, onNo, noFirst) { say(text, null); msg.ask = { onYes, onNo, noFirst: !!noFirst }; }   // (playfix: noFirst puts the cursor on NO for a destructive question)
 G.say = say; G.ask = ask;
-G.toast = (text, color) => { G.actionBar = { text, t: 3, color }; };
+G.toast = (text, color) => { G.actionBar = { text: t(text), t: 3, color }; };
 G.giveXp = (n) => PL.giveXp(P, n);
 G.hurtPlayer = (dmg, cause, from, ranged, opts) => PL.hurtPlayer(P, dmg, cause, from, ranged, opts);
 G.busy = () => !(state === 'play' || state === 'screen');
@@ -1638,6 +1661,12 @@ G.onDeath = (cause) => { P.deathMsg = cause; };
 // Single-player drops it on respawning, as ever; a co-op guest drops it the moment it dies (updatePlay), so a guest
 // that leaves, reloads or crashes on its death screen has already left its things where it fell, as in Minecraft.
 function deathDrops() {
+  if (G.keepInventory !== false) {
+    if (typeof G.toast === 'function') {
+      G.toast(t('Inventory kept safe!', '¡Inventario protegido!'), '#55ff55');
+    }
+    return;
+  }
   const at = P.deathDrop || { x: P.tx, y: P.ty };
   for (let i = 0; i < 36; i++) { const s = G.inv.slots[i]; if (s) { E.dropItem(s.id, s.n, at.x * TILE, at.y * TILE, s.dmg ? { dmg: s.dmg } : {}, { delay: 1 }); G.inv.slots[i] = null; } }
   for (let i = 0; i < 4; i++) { const s = G.inv.armor[i]; if (s) { E.dropItem(s.id, 1, at.x * TILE, at.y * TILE, s.dmg ? { dmg: s.dmg } : {}, { delay: 1 }); G.inv.armor[i] = null; } }
@@ -2101,11 +2130,31 @@ function updateMenu() {
 // START > OPTION (6.5, generated worlds): MUSIC, WILD POKeMON (Creative), DIFFICULTY (Survival; a guest's is the host's)
 let optionUI = null;
 function openOption() {
-  const rows = (NET.guest ? ['MUSIC'] : MODES.optionRows(G.mode)).concat(MAP_ON ? ['MINIMAP'] : []);   // (the minimap's switch, every mode)
+  const baseRows = ['LANGUAGE', 'KEEP INVENTORY', 'MUSIC'];
+  const extraRows = NET.guest ? [] : (MODES.optionRows(G.mode) || []).filter(r => !baseRows.includes(r));
+  const rows = baseRows.concat(extraRows).concat(MAP_ON ? ['MINIMAP'] : []);
   optionUI = new OPT.OptionWindow(rows, {
-    sfx, music: () => !isMusicMuted(), setMusic: (on) => setMusicMuted(!on),
-    wild: () => G.wildOpt !== false, setWild: (on) => { G.wildOpt = !!on; if (world.wd) world.wd.wild = !!on; },
-    diff: () => G.diff, setDiff: (d) => setMode(G.mode, d), minimap: () => (MM ? MM.pref() : true), setMinimap: (on) => { if (MM) MM.setPref(on); },
+    sfx,
+    isEs: () => getLanguage() === 'es',
+    lang: () => (getLanguage() === 'es' ? 'ESPAÑOL' : 'ENGLISH'),
+    setLang: (l) => {
+      const code = (l === 'ESPAÑOL' || l === 'es') ? 'es' : 'en';
+      setLanguage(code);
+    },
+    keepInv: () => G.keepInventory !== false,
+    setKeepInv: (on) => {
+      G.keepInventory = !!on;
+      try { localStorage.setItem('pokecraft-keep-inv', G.keepInventory ? 'true' : 'false'); } catch (e) {}
+      window.__pokeKeepInventory = G.keepInventory;
+    },
+    music: () => !isMusicMuted(),
+    setMusic: (on) => setMusicMuted(!on),
+    wild: () => G.wildOpt !== false,
+    setWild: (on) => { G.wildOpt = !!on; if (world.wd) world.wd.wild = !!on; },
+    diff: () => G.diff,
+    setDiff: (d) => setMode(G.mode, d),
+    minimap: () => (MM ? MM.pref() : true),
+    setMinimap: (on) => { if (MM) MM.setPref(on); },
   });
   state = 'option';
 }
@@ -2329,18 +2378,21 @@ function drawDead() {
   const g = ctx.createLinearGradient(0, 0, 0, HH);
   g.addColorStop(0, 'rgba(80,0,0,0.38)'); g.addColorStop(1, 'rgba(128,48,48,0.63)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, HW, HH);
-  const t1 = 'You died!';
+  const t1 = t('You died!', '¡Has muerto!');
   mcText(ctx, t1, Math.round(HW / 2 - mcWidth(t1, 2) / 2), Math.round(HH / 4 - 12), '#ffffff', true, 2);
-  const cause = P.deathMsg || `${P.name} died`;
+  const cause = t(P.deathMsg || `${P.name} died`);
   mcText(ctx, cause, Math.round(HW / 2 - mcWidth(cause) / 2), Math.round(HH / 4 + 18), '#ffffff');
-  const sc = `Score: §e${G.score}`;
-  const scoreTxt = 'Score: ', num = String(G.score);
+  const scoreTxt = t('Score: ', 'Puntuación: '), num = String(G.score);
   const sw = mcWidth(scoreTxt + num);
   mcText(ctx, scoreTxt, Math.round(HW / 2 - sw / 2), Math.round(HH / 4 + 34), '#ffffff');
   mcText(ctx, num, Math.round(HW / 2 - sw / 2 + mcWidth(scoreTxt) + 1), Math.round(HH / 4 + 34), '#ffff55');
-  void sc;
+  if (G.keepInventory !== false) {
+    const keepMsg = t('Inventory Protected!', '¡Inventario Protegido!');
+    mcText(ctx, keepMsg, Math.round(HW / 2 - mcWidth(keepMsg) / 2), Math.round(HH / 4 + 50), '#55ff55');
+  }
   const active = deathUI.t >= 1;
-  ['Respawn', 'Title Screen'].forEach((label, i) => {
+  const labels = [t('Respawn', 'Reaparecer'), t('Title Screen', 'Pantalla del Título')];
+  labels.forEach((label, i) => {
     const bx = Math.round(HW / 2 - 100), by = Math.round(HH / 4 + 72 + i * 24);
     const hover = active && deathUI.sel === i;
     drawButton(bx, by, 200, 20, label, hover, active && i === 0);
@@ -2674,9 +2726,15 @@ function drawMenu() {
   // generated worlds' nine rows do not fit above the hint window: 7 show at a time and the list scrolls, as FireRed's
   // long lists do, with its little arrows (Classic's 7 rows never scroll)
   const vis = Math.min(MENU.length, 7), top = Math.max(0, Math.min(MENU.length - vis, menuCursor - vis + 2));
-  const w = G.myName ? Math.max(80, 18 + textWidth(G.myName) + 10) : 80, x = VW - w, h = listHeight(vis);
+  const renderedItems = MENU.slice(top, top + vis).map((it) => (it === 'STEVE' && G.myName ? G.myName : t(it)));
+  const maxW = Math.max(...renderedItems.map((s) => textWidth(s)));
+  const w = Math.max(84, 18 + maxW + 12), x = VW - w, h = listHeight(vis);
   drawWindow(ctx, x, 0, w, h);
-  MENU.slice(top, top + vis).forEach((it, k) => { const i = top + k; drawText(ctx, it === 'STEVE' && G.myName ? G.myName : it, x + 18, 6 + k * 16, FG, SH); if (i === menuCursor) cursorArrow(ctx, x + 9, 9 + k * 16); });
+  renderedItems.forEach((label, k) => {
+    const i = top + k;
+    drawText(ctx, label, x + 18, 6 + k * 16, FG, SH);
+    if (i === menuCursor) cursorArrow(ctx, x + 9, 9 + k * 16);
+  });
   if (MENU.length > vis) {
     const bob = Math.floor(time * 4) % 2, ax = x + w / 2 - 3;
     ctx.fillStyle = '#e04848';
@@ -2687,7 +2745,8 @@ function drawMenu() {
     STEVE: 'Check your money and other game data.', SAVE: 'Save your game.', 'CO-OP': 'Play with friends.', EXIT: 'Close this menu window.',
     OPTION: 'Adjusts various game settings.', TITLE: 'Return to the title screen.', MAP: 'Check the map of places you have been.' };
   drawWindow(ctx, 0, VH - 32, VW, 32);
-  drawText(ctx, hints[MENU[menuCursor]] || '', 10, VH - 24, FG, SH);
+  const hintRaw = hints[MENU[menuCursor]] || '';
+  drawText(ctx, t(hintRaw), 10, VH - 24, FG, SH);
 }
 // Title: FireRed's own POKéMON logo over rising redstone dust (where FireRed has flames), with
 // REDSTONE VERSION in Minecraft's font and Steve where the box-art Charizard stands.
@@ -2862,8 +2921,9 @@ function drawMsg() {
   const done = msg.shown >= total;
   drawMessage(ctx, page, Math.floor(msg.shown), done && !(msg.ask && msg.page === msg.pages.length - 1), time);
   if (msg.ask && done && msg.page === msg.pages.length - 1) {
+    const isEs = getLanguage() === 'es';
     drawWindow(ctx, VW - 64, VH - 48 - 44, 64, 44);
-    drawText(ctx, 'YES', VW - 64 + 18, VH - 48 - 44 + 6, FG, SH);
+    drawText(ctx, isEs ? 'SÍ' : 'YES', VW - 64 + 18, VH - 48 - 44 + 6, FG, SH);
     drawText(ctx, 'NO', VW - 64 + 18, VH - 48 - 44 + 22, FG, SH);
     cursorArrow(ctx, VW - 64 + 9, VH - 48 - 44 + 9 + (yesno ? yesno.cursor : 0) * 16);
   }

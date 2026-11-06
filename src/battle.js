@@ -14,6 +14,7 @@ import { xpForLevel, drawIcon } from './hud.js';
 import { mc } from './audio.js';
 import { PartyScreen } from './partyui.js';
 import { sfx, music, cry } from './audio.js';
+import { t } from './i18n.js';
 
 import { silhouette } from './sprites.js';
 
@@ -110,7 +111,7 @@ export class Battle {
 
   // ---------------------------------------------------------------- event helpers
   push(ev) { this.q.push(ev); }
-  msg(text, press = false) { this.push({ type: 'msg', text, press }); }
+  msg(text, press = false) { this.push({ type: 'msg', text: t(text), press }); }
   set(fn) { this.push({ type: 'set', fn }); }
   sound(name) { this.push({ type: 'sfx', name }); }
   hpTo(b, value) { this.push({ type: 'hp', disp: this.dispFor(b), to: value }); }
@@ -1384,9 +1385,9 @@ export class Battle {
     const showMenu = !this.cur && !this.q.length && (this.ui === 'action' || this.ui === 'moves' || this.ui === 'yesno');
     if (showMenu && this.ui === 'action') {
       ctx.drawImage(A.img.tbAction, 0, y);
-      drawText(ctx, 'What will', 10, y + 10, TEXT_WHITE, TEXT_SHADOW);
-      drawText(ctx, `${this.P.mon.name} do?`, 10, y + 26, TEXT_WHITE, TEXT_SHADOW);
-      const opts = ['FIGHT', 'BAG', 'POKéMON', 'RUN'];
+      drawText(ctx, t('What will'), 10, y + 10, TEXT_WHITE, TEXT_SHADOW);
+      drawText(ctx, t(`${this.P.mon.name} do?`), 10, y + 26, TEXT_WHITE, TEXT_SHADOW);
+      const opts = [t('FIGHT'), t('BAG'), t('POKéMON'), t('RUN')];
       opts.forEach((o, i) => {
         const ox = 136 + (i % 2) * 56, oy = y + 10 + Math.floor(i / 2) * 16;
         drawText(ctx, o, ox, oy, MENU_FG, MENU_SH);
